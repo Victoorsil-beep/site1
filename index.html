@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Hub — Afya Unigranrio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        magenta: {
+                            50: '#fdf2f8',
+                            100: '#fce7f3',
+                            200: '#fbcfe8',
+                            300: '#f472b6',
+                            400: '#e879f9',
+                            500: '#ec4899',
+                            600: '#db2777',
+                            700: '#be185d',
+                            800: '#9d174d',
+                            900: '#831843',
+                            950: '#3b071e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8fafc;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .animate-fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <!-- React 18 & Babel Standalone -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="h-full text-slate-800 antialiased selection:bg-magenta-700 selection:text-white">
+    <div id="root" class="min-h-full flex flex-col"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        const EMAIL_DESTINO_EQUIPA = "atendimentomarketing.unigranrio@afya.com.br";
+
+        const UNIDADES = ["Duque de Caxias", "Barra da Tijuca", "Nova Iguaçu", "Propep", "Outros"];
+        const AREAS = ["Design", "Redes Sociais", "Disparos"];
+        const TIPOS_SERVICO = ["Alteração no site", "Banner", "Story", "E-mail Marketing", "Vídeo", "Comunicado", "Outros"];
+        const TEAM_MEMBERS = [
+            "Não atribuído",
+            "Mariana Silva (Design)",
+            "Lucas Mendes (Redes Sociais)",
+            "Amanda Costa (Disparos)",
+            "Fernanda Rocha (Coord. Marketing)"
+        ];
+
+        const STATUS_THEMES = {
+            "Novo": { label: "Novo", bg: "bg-magenta-50 text-magenta-700 border-magenta-200/80", dot: "bg-magenta-600" },
+            "Em Produção": { label: "Em Produção", bg: "bg-amber-50 text-amber-800 border-amber-200/80", dot: "bg-amber-500" },
+            "Aguardando Aprovação": { label: "Aguardando Aprovação", bg: "bg-purple-50 text-purple-700 border-purple-200/80", dot: "bg-purple-500" },
+            "Concluído": { label: "Concluído", bg: "bg-emerald-50 text-emerald-800 border-emerald-200/80", dot: "bg-emerald-500" }
+        };
+
+        // Função para calcular prazo mínimo de 3 dias úteis a partir de hoje
+        const getMinBusinessDate = () => {
+            let date = new Date();
+            let added = 0;
+            while (added < 3) {
+                date.setDate(date.getDate() + 1);
+                const day = date.getDay();
+                if (day !== 0 && day !== 6) added++;
+            }
+            return date.toISOString().split('T')[0];
+        };
+
+        // Formatação no padrão DD/MM/AAAA HH:mm
+        const formatDateTimeNow = () => {
+            const now = new Date();
+            const d = String(now.getDate()).padStart(2, '0');
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const y = now.getFullYear();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            return `${d}/${m}/${y} ${hh}:${mm}`;
+        };
+
+        // Gerador do e-mail (HTML + Texto Puro + Mailto URL)
+        const buildEmailPayload = (pedido) => {
+            const dataAbertura = pedido.dataAbertura || formatDateTimeNow();
+            const subject = `CHAMADO CRIADO COM SUCESSO: ${pedido.titulo}`;
+            const prazoFmt = pedido.prazo ? pedido.prazo.split('-').reverse().join('/') : '';
+
+            // Texto Puro Formatado para Mailto (Compatível com Outlook, Thunderbird, Gmail, Mail App)
+            const plainTextBody = 
+`CHAMADO CRIADO COM SUCESSO
+Informações sobre o chamado:
+
+Tipo de Serviço: ${pedido.tipoPeca} (${pedido.area})
+Solicitante: ${pedido.requerente} (${pedido.email})
+Departamento/Setor: ${pedido.unidade}
+Data de Abertura: ${dataAbertura}
+Prazo Desejado: ${prazoFmt}
+
+----------------------------------------
+Assunto / Título da Demanda:
+${pedido.titulo}
+
+Detalhes / Briefing:
+${pedido.briefing}`;
+
+            // URL Mailto codificada
+            const mailtoUrl = `mailto:${EMAIL_DESTINO_EQUIPA}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(plainTextBody)}`;
+
+            // Versão HTML Visual para Logs e Pré-visualização
+            const htmlContent = `
+<div style="font-family: Arial, Helvetica, sans-serif; color: #1f2937; max-width: 580px; margin: 0 auto; background-color: #ffffff; padding: 24px; border: 1px solid #e5e7eb; border-radius: 8px;">
+    <!-- Cabeçalho de Remetente / Destinatário -->
+    <div style="margin-bottom: 20px; font-size: 14px; color: #374151;">
+        <div style="font-weight: bold; font-size: 15px; color: #111827; margin-bottom: 4px;">${pedido.requerente}</div>
+        <div>
+            <span style="color: #6b7280;">Para:</span> 
+            <strong style="color: #111827;">Atendimento Marketing;</strong> 
+            <span style="color: #10b981; font-weight: bold; margin-left: 4px;">✔</span> 
+            <strong style="color: #111827;">${pedido.requerente}</strong>
+        </div>
+    </div>
+
+    <!-- Bloco Principal do E-mail -->
+    <div style="margin-top: 16px;">
+        <h3 style="font-size: 16px; font-weight: bold; color: #be185d; margin: 0 0 4px 0; text-transform: uppercase;">
+            CHAMADO CRIADO COM SUCESSO
+        </h3>
+        <p style="font-size: 14px; color: #4b5563; margin: 0 0 16px 0;">
+            Informações sobre o chamado:
+        </p>
+
+        <div style="font-size: 14px; line-height: 1.8; color: #111827; margin-bottom: 20px;">
+            <div><strong>Tipo de Serviço:</strong> ${pedido.tipoPeca} (${pedido.area})</div>
+            <div><strong>Solicitante:</strong> ${pedido.requerente.toLowerCase()}</div>
+            <div><strong>Departamento/Setor:</strong> ${pedido.unidade}</div>
+            <div><strong>Data de Abertura:</strong> ${dataAbertura}</div>
+            <div><strong>Prazo Desejado:</strong> ${prazoFmt}</div>
+        </div>
+
+        <div style="border-top: 1px solid #e5e7eb; padding-top: 16px; font-size: 14px; line-height: 1.6;">
+            <div style="margin-bottom: 12px;">
+                <strong style="color: #831843;">Assunto / Título da Demanda:</strong><br>
+                <span style="color: #374151; font-size: 15px; font-weight: 500;">${pedido.titulo}</span>
+            </div>
+            <div>
+                <strong style="color: #831843;">Detalhes / Briefing:</strong><br>
+                <span style="color: #374151; white-space: pre-wrap;">${pedido.briefing}</span>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 24px; padding-top: 12px; border-top: 1px solid #f3f4f6; font-size: 11px; color: #9ca3af; text-align: center;">
+        Envio automático — Sistema de Solicitações de Marketing Afya Unigranrio
+    </div>
+</div>`;
+
+            return {
+                id: `LOG-${Date.now()}-${Math.floor(Math.random() * 899 + 100)}`,
+                pedidoId: pedido.id,
+                to: EMAIL_DESTINO_EQUIPA,
+                subject,
+                dataEnvio: dataAbertura,
+                solicitante: pedido.requerente,
+                emailSolicitante: pedido.email,
+                tipoServico: `${pedido.tipoPeca} (${pedido.area})`,
+                departamento: pedido.unidade,
+                titulo: pedido.titulo,
+                briefing: pedido.briefing,
+                plainTextBody,
+                mailtoUrl,
+                htmlContent
+            };
+        };
+
+        // Componente com a Logo Oficial Vetorial Exata da Afya Unigranrio
+        function AfyaUnigranrioLogo() {
+            return (
+                <div className="flex items-center gap-3">
+                    <svg viewBox="0 0 320 54" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-9 w-auto">
+                        {/* Ícone A da Afya */}
+                        <path d="M5.5 44.5 C 10 38, 22 20, 27 12 C 28.5 9.5, 30.5 7, 33 7 C 35.5 7, 37.5 9.5, 39 12 C 44 20, 56 38, 60.5 44.5 C 62 46.8, 59.5 49, 56.5 47 C 48 41.5, 38 38, 33 38 C 28 38, 18 41.5, 9.5 47 C 6.5 49, 4 46.8, 5.5 44.5 Z" fill="#ffffff" />
+                        
+                        {/* Texto Afya */}
+                        <text x="66" y="44" fontFamily="Inter, sans-serif" fontWeight="800" fontStyle="italic" fontSize="36" fill="#ffffff" letterSpacing="-1">fya</text>
+                        
+                        {/* Linha Divisória */}
+                        <rect x="135" y="10" width="1.5" height="34" fill="#ffffff" opacity="0.2" />
+
+                        {/* Texto UNIVERSIDADE UNIGRANRIO */}
+                        <text x="148" y="21" fontFamily="Inter, sans-serif" fontWeight="800" fontStyle="italic" fontSize="11" fill="#ffffff" letterSpacing="0.8">UNIVERSIDADE</text>
+                        <text x="148" y="42" fontFamily="Inter, sans-serif" fontWeight="900" fontStyle="italic" fontSize="21" fill="#ffffff" letterSpacing="0.2">UNIGRANRIO</text>
+                    </svg>
+                </div>
+            );
+        }
+
+        // Solicitações Iniciais de Exemplo
+        const INITIAL_REQUESTS = [
+            {
+                id: "REQ-2026-101",
+                titulo: "Alteração no site do Programa de Pós-Graduação",
+                unidade: "Propep",
+                area: "Design",
+                tipoPeca: "Alteração no site",
+                prazo: "2026-10-28",
+                briefing: "Atualização da página da Propep com inclusão do link do novo edital e ajuste nas datas de inscrição do processo seletivo.",
+                status: "Em Produção",
+                requerente: "Roberto Carlos de Almeida",
+                email: "roberto.almeida@unigranrio.com.br",
+                responsavel: "Mariana Silva (Design)",
+                linkEntrega: "",
+                anexos: ["Edital_2027.pdf"],
+                dataAbertura: "22/10/2026 10:14"
+            },
+            {
+                id: "REQ-2026-102",
+                titulo: "Banner Digital para a Semana de Enfermagem",
+                unidade: "Duque de Caxias",
+                area: "Design",
+                tipoPeca: "Banner",
+                prazo: "2026-11-02",
+                briefing: "Banner digital em alta resolução para divulgação nos monitores do campus e transmissão online das palestras.",
+                status: "Concluído",
+                requerente: "Juliana Mendes",
+                email: "juliana.mendes@unigranrio.com.br",
+                responsavel: "Mariana Silva (Design)",
+                linkEntrega: "https://afya.unigranrio.edu.br/entregas/banner-enfermagem.png",
+                anexos: [],
+                dataAbertura: "21/10/2026 15:30"
+            }
+        ];
+
+        function App() {
+            const [activeTab, setActiveTab] = useState("novo");
+            const [pedidos, setPedidos] = useState(INITIAL_REQUESTS);
+            const [emailsLog, setEmailsLog] = useState(() => INITIAL_REQUESTS.map(p => buildEmailPayload(p)));
+            const [webhookUrl, setWebhookUrl] = useState(() => localStorage.getItem("afya_webhook_url") || "");
+            const [showWebhookModal, setShowWebhookModal] = useState(false);
+            const [toast, setToast] = useState(null);
+
+            const [selectedPedido, setSelectedPedido] = useState(null);
+            const [selectedEmail, setSelectedEmail] = useState(null);
+            const [createdEmailModal, setCreatedEmailModal] = useState(null);
+
+            const showToast = (msg) => {
+                setToast(msg);
+                setTimeout(() => setToast(null), 4000);
+            };
+
+            const handleSaveWebhook = (url) => {
+                setWebhookUrl(url);
+                localStorage.setItem("afya_webhook_url", url);
+                setShowWebhookModal(false);
+                showToast(url ? "Endpoint do Webhook / Power Automate salvo!" : "Webhook desativado.");
+            };
+
+            const handleCreatePedido = async (novoPedido) => {
+                setPedidos(prev => [novoPedido, ...prev]);
+                
+                // Gerar log do e-mail
+                const emailPayload = buildEmailPayload(novoPedido);
+                setEmailsLog(prev => [emailPayload, ...prev]);
+
+                // Tentar envio via Webhook / Power Automate se estiver configurado
+                if (webhookUrl) {
+                    try {
+                        await fetch(webhookUrl, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                recipient: EMAIL_DESTINO_EQUIPA,
+                                subject: emailPayload.subject,
+                                textContent: emailPayload.plainTextBody,
+                                htmlContent: emailPayload.htmlContent,
+                                requestDetails: novoPedido
+                            })
+                        });
+                        showToast("E-mail disparado automaticamente via Webhook / Power Automate!");
+                    } catch (err) {
+                        console.error("Erro ao chamar Webhook:", err);
+                        showToast("Aviso: Webhook não respondeu. Utilize o botão de disparo via Outlook.");
+                    }
+                } else {
+                    showToast(`Chamado criado! Dispare o e-mail para ${EMAIL_DESTINO_EQUIPA}`);
+                }
+
+                // Abrir modal de confirmação com opções de disparo imediato
+                setCreatedEmailModal(emailPayload);
+            };
+
+            const handleUpdatePedido = (id, fields) => {
+                setPedidos(prev => prev.map(p => p.id === id ? { ...p, ...fields } : p));
+                if (selectedPedido && selectedPedido.id === id) {
+                    setSelectedPedido(prev => ({ ...prev, ...fields }));
+                }
+                showToast("Pedido atualizado com sucesso!");
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+                    {/* Toast Notification */}
+                    {toast && (
+                        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-xs font-medium px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-800 animate-fade-in max-w-md">
+                            <span className="w-2.5 h-2.5 rounded-full bg-magenta-500 shrink-0 animate-ping"></span>
+                            <span>{toast}</span>
+                        </div>
+                    )}
+
+                    {/* Cabeçalho Escuro com Logo Oficial Vetorial em Destaque */}
+                    <header className="bg-magenta-950 border-b border-magenta-900 sticky top-0 z-40 shadow-lg">
+                        <div className="max-w-6xl mx-auto px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            
+                            {/* Logo Oficial Afya UNIVERSIDADE UNIGRANRIO */}
+                            <div className="flex items-center justify-between w-full sm:w-auto">
+                                <AfyaUnigranrioLogo />
+                                <span className="sm:hidden text-[10px] bg-magenta-800 text-magenta-100 font-bold px-2 py-0.5 rounded-full uppercase">
+                                    Marketing
+                                </span>
+                            </div>
+
+                            {/* Navegação por Pílulas sobre Fundo Escuro */}
+                            <nav className="flex items-center bg-magenta-900/60 p-1 rounded-full border border-magenta-800/80 text-xs font-medium overflow-x-auto w-full sm:w-auto justify-center">
+                                <button
+                                    onClick={() => setActiveTab("novo")}
+                                    className={`px-4 py-2 rounded-full transition-all whitespace-nowrap ${
+                                        activeTab === "novo"
+                                            ? "bg-magenta-600 text-white shadow-md font-semibold"
+                                            : "text-magenta-100/70 hover:text-white"
+                                    }`}
+                                >
+                                    Novo Pedido
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("painel")}
+                                    className={`px-4 py-2 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                                        activeTab === "painel"
+                                            ? "bg-magenta-600 text-white shadow-md font-semibold"
+                                            : "text-magenta-100/70 hover:text-white"
+                                    }`}
+                                >
+                                    <span>Painel de Gestão</span>
+                                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                                        activeTab === "painel" ? "bg-white/20 text-white" : "bg-magenta-800 text-magenta-200"
+                                    }`}>
+                                        {pedidos.length}
+                                    </span>
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("meus")}
+                                    className={`px-4 py-2 rounded-full transition-all whitespace-nowrap ${
+                                        activeTab === "meus"
+                                            ? "bg-magenta-600 text-white shadow-md font-semibold"
+                                            : "text-magenta-100/70 hover:text-white"
+                                    }`}
+                                >
+                                    Os Meus Pedidos
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("emails")}
+                                    className={`px-4 py-2 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                                        activeTab === "emails"
+                                            ? "bg-magenta-600 text-white shadow-md font-semibold"
+                                            : "text-magenta-100/70 hover:text-white"
+                                    }`}
+                                >
+                                    <span>Log de E-mails</span>
+                                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                                        activeTab === "emails" ? "bg-white/20 text-white" : "bg-emerald-900 text-emerald-200"
+                                    }`}>
+                                        {emailsLog.length}
+                                    </span>
+                                </button>
+                            </nav>
+                        </div>
+                    </header>
+
+                    {/* Conteúdo Principal */}
+                    <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
+                        {activeTab === "novo" && (
+                            <EcraNovoPedido
+                                onSuccess={(novo) => {
+                                    handleCreatePedido(novo);
+                                }}
+                            />
+                        )}
+
+                        {activeTab === "painel" && (
+                            <EcraPainelGestao
+                                pedidos={pedidos}
+                                onUpdate={handleUpdatePedido}
+                                onOpenDetails={(p) => setSelectedPedido(p)}
+                            />
+                        )}
+
+                        {activeTab === "meus" && (
+                            <EcraMeusPedidos
+                                pedidos={pedidos}
+                                onOpenDetails={(p) => setSelectedPedido(p)}
+                            />
+                        )}
+
+                        {activeTab === "emails" && (
+                            <EcraLogEmails
+                                emailsLog={emailsLog}
+                                onSelectEmail={(em) => setSelectedEmail(em)}
+                            />
+                        )}
+                    </main>
+
+                    {/* Rodapé com Botão de Configuração do Webhook */}
+                    <footer className="bg-white border-t border-slate-200/80 py-4 px-6 text-center text-xs text-slate-500">
+                        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+                            <span>E-mail da Equipe: <strong className="text-slate-800">{EMAIL_DESTINO_EQUIPA}</strong></span>
+                            
+                            <button
+                                onClick={() => setShowWebhookModal(true)}
+                                className="text-magenta-700 hover:text-magenta-900 font-semibold underline flex items-center gap-1"
+                            >
+                                ⚙️ Configurar Webhook / Power Automate {webhookUrl ? "✓" : ""}
+                            </button>
+                        </div>
+                    </footer>
+
+                    {/* Modais */}
+                    {createdEmailModal && (
+                        <ModalConfirmacaoCriacao
+                            emailPayload={createdEmailModal}
+                            onClose={() => {
+                                setCreatedEmailModal(null);
+                                setActiveTab("meus");
+                            }}
+                        />
+                    )}
+
+                    {selectedPedido && (
+                        <ModalDetalhes
+                            pedido={selectedPedido}
+                            onClose={() => setSelectedPedido(null)}
+                            onUpdate={handleUpdatePedido}
+                        />
+                    )}
+
+                    {selectedEmail && (
+                        <ModalVisualizadorEmail
+                            email={selectedEmail}
+                            onClose={() => setSelectedEmail(null)}
+                        />
+                    )}
+
+                    {showWebhookModal && (
+                        <ModalConfigWebhook
+                            currentUrl={webhookUrl}
+                            onSave={handleSaveWebhook}
+                            onClose={() => setShowWebhookModal(false)}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        // ==========================================
+        // 1. ECRÃ: NOVO PEDIDO
+        // ==========================================
+        function EcraNovoPedido({ onSuccess }) {
+            const minDate = useMemo(() => getMinBusinessDate(), []);
+
+            const [formData, setFormData] = useState({
+                requerente: "",
+                email: "",
+                titulo: "",
+                unidade: "Duque de Caxias",
+                area: "Design",
+                tipoPeca: "Alteração no site",
+                prazo: minDate,
+                briefing: ""
+            });
+
+            const [files, setFiles] = useState([]);
+            const [dateError, setDateError] = useState("");
+
+            const handleDateChange = (e) => {
+                const val = e.target.value;
+                setFormData(prev => ({ ...prev, prazo: val }));
+                if (val < minDate) {
+                    setDateError(`O prazo mínimo exige pelo menos 3 dias úteis (disponível a partir de ${minDate.split('-').reverse().join('/')}).`);
+                } else {
+                    setDateError("");
+                }
+            };
+
+            const handleFileSelect = (e) => {
+                if (e.target.files) {
+                    const newNames = Array.from(e.target.files).map(f => f.name);
+                    setFiles(prev => [...prev, ...newNames]);
+                }
+            };
+
+            const removeFile = (index) => {
+                setFiles(prev => prev.filter((_, i) => i !== index));
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (formData.prazo < minDate) {
+                    setDateError("Selecione uma data com pelo menos 3 dias úteis de prazo.");
+                    return;
+                }
+
+                const novo = {
+                    id: `REQ-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+                    ...formData,
+                    requerente: formData.requerente.trim(),
+                    email: formData.email.trim(),
+                    titulo: formData.titulo.trim(),
+                    briefing: formData.briefing.trim(),
+                    status: "Novo",
+                    responsavel: "Não atribuído",
+                    linkEntrega: "",
+                    anexos: files,
+                    dataAbertura: formatDateTimeNow()
+                };
+
+                onSuccess(novo);
+            };
+
+            return (
+                <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+                    <div className="text-center space-y-1">
+                        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Nova Solicitação de Marketing</h2>
+                        <p className="text-xs text-slate-500">
+                            Preencha os dados para criar a solicitação. Ao submeter, o e-mail para a equipe é gerado na hora.
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-slate-200/80 p-8 shadow-sm space-y-6">
+                        
+                        {/* Identificação do Solicitante (Campos Abertos sem Perfil Fixo) */}
+                        <div className="bg-magenta-50/60 border border-magenta-100 p-5 rounded-2xl space-y-4">
+                            <div className="flex items-center gap-2 text-magenta-900 font-semibold text-xs">
+                                <span className="w-2 h-2 rounded-full bg-magenta-600"></span>
+                                Identificação do Solicitante
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                        Nome Completo do Solicitante <span className="text-magenta-600">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder="Ex: Roberto Carlos de Almeida"
+                                        value={formData.requerente}
+                                        onChange={(e) => setFormData({ ...formData, requerente: e.target.value })}
+                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-magenta-600/20 focus:border-magenta-600"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                        E-mail do Solicitante <span className="text-magenta-600">*</span>
+                                    </label>
+                                    <input
+                                        type="email"
+                                        required
+                                        placeholder="seu.email@unigranrio.com.br"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-magenta-600/20 focus:border-magenta-600"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Campos do Pedido */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {/* Título do Projeto */}
+                            <div className="md:col-span-2">
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Assunto / Título da Demanda <span className="text-magenta-600">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="Ex: Alteração no site da Propep — Novo Edital"
+                                    value={formData.titulo}
+                                    onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-magenta-600/20 focus:border-magenta-600"
+                                />
+                            </div>
+
+                            {/* Unidade / Departamento */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Departamento / Setor <span className="text-magenta-600">*</span>
+                                </label>
+                                <select
+                                    value={formData.unidade}
+                                    onChange={(e) => setFormData({ ...formData, unidade: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-magenta-600/20 focus:border-magenta-600"
+                                >
+                                    {UNIDADES.map((u, i) => <option key={i} value={u}>{u}</option>)}
+                                </select>
+                            </div>
+
+                            {/* Área de Destino */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Área de Destino <span className="text-magenta-600">*</span>
+                                </label>
+                                <select
+                                    value={formData.area}
+                                    onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-magenta-600/20 focus:border-magenta-600"
+                                >
+                                    {AREAS.map((a, i) => <option key={i} value={a}>{a}</option>)}
+                                </select>
+                            </div>
+
+                            {/* Tipo de Serviço / Peça */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Tipo de Serviço / Peça <span className="text-magenta-600">*</span>
+                                </label>
+                                <select
+                                    value={formData.tipoPeca}
+                                    onChange={(e) => setFormData({ ...formData, tipoPeca: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-magenta-600/20 focus:border-magenta-600"
+                                >
+                                    {TIPOS_SERVICO.map((t, i) => <option key={i} value={t}>{t}</option>)}
+                                </select>
+                            </div>
+
+                            {/* Prazo Desejado */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Prazo Desejado <span className="text-slate-400 font-normal">(Mín. 3 dias úteis) *</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    required
+                                    min={minDate}
+                                    value={formData.prazo}
+                                    onChange={handleDateChange}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-magenta-600/20 focus:border-magenta-600"
+                                />
+                                {dateError && <p className="text-[11px] text-rose-600 mt-1 font-medium">{dateError}</p>}
+                            </div>
+
+                            {/* Briefing / Detalhes */}
+                            <div className="md:col-span-2">
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Detalhes / Briefing <span className="text-magenta-600">*</span>
+                                </label>
+                                <textarea
+                                    required
+                                    rows="4"
+                                    placeholder="Descreva detalhadamente a demanda, textos, público-alvo e orientações gerais..."
+                                    value={formData.briefing}
+                                    onChange={(e) => setFormData({ ...formData, briefing: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-magenta-600/20 focus:border-magenta-600"
+                                ></textarea>
+                            </div>
+
+                            {/* Anexos */}
+                            <div className="md:col-span-2">
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Anexos de Apoio
+                                </label>
+                                <div className="border border-dashed border-slate-300 bg-slate-50/60 hover:bg-magenta-50/30 transition rounded-2xl p-5 text-center">
+                                    <p className="text-xs text-slate-600">
+                                        Arraste os arquivos para aqui ou{" "}
+                                        <label className="text-magenta-700 font-semibold cursor-pointer underline">
+                                            selecione do dispositivo
+                                            <input type="file" multiple onChange={handleFileSelect} className="hidden" />
+                                        </label>
+                                    </p>
+                                </div>
+
+                                {files.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                        {files.map((file, idx) => (
+                                            <span key={idx} className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs px-3 py-1 rounded-lg border border-slate-200">
+                                                <span>📄 {file}</span>
+                                                <button type="button" onClick={() => removeFile(idx)} className="hover:text-rose-600 ml-1 font-bold">
+                                                    ✕
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Botão de Envio */}
+                        <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100">
+                            <span className="text-[11px] text-slate-500 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Notificação pronta para enviar a <strong className="text-slate-800">{EMAIL_DESTINO_EQUIPA}</strong>
+                            </span>
+                            <button
+                                type="submit"
+                                className="w-full sm:w-auto bg-magenta-700 hover:bg-magenta-800 text-white font-semibold text-xs px-7 py-3.5 rounded-xl transition shadow-md shadow-magenta-700/20"
+                            >
+                                Submeter Pedido
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // 2. ECRÃ: PAINEL DE GESTÃO (DASHBOARD)
+        // ==========================================
+        function EcraPainelGestao({ pedidos, onUpdate, onOpenDetails }) {
+            const [search, setSearch] = useState("");
+            const [filterUnidade, setFilterUnidade] = useState("Todas");
+            const [filterArea, setFilterArea] = useState("Todas");
+            const [filterStatus, setFilterStatus] = useState("Todos");
+
+            const filtered = useMemo(() => {
+                return pedidos.filter(p => {
+                    const matchText = p.titulo.toLowerCase().includes(search.toLowerCase()) ||
+                                      p.requerente.toLowerCase().includes(search.toLowerCase()) ||
+                                      p.id.toLowerCase().includes(search.toLowerCase());
+                    const matchUnidade = filterUnidade === "Todas" || p.unidade === filterUnidade;
+                    const matchArea = filterArea === "Todas" || p.area === filterArea;
+                    const matchStatus = filterStatus === "Todos" || p.status === filterStatus;
+                    return matchText && matchUnidade && matchArea && matchStatus;
+                });
+            }, [pedidos, search, filterUnidade, filterArea, filterStatus]);
+
+            return (
+                <div className="space-y-6 animate-fade-in">
+                    {/* Barra de Filtros */}
+                    <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-3 justify-between items-center">
+                        <div className="w-full sm:w-80">
+                            <input
+                                type="text"
+                                placeholder="Pesquisar por assunto, solicitante ou ID..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-magenta-600/20"
+                            />
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 w-full sm:w-auto text-xs">
+                            <select
+                                value={filterUnidade}
+                                onChange={(e) => setFilterUnidade(e.target.value)}
+                                className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium"
+                            >
+                                <option value="Todas">Setor: Todos</option>
+                                {UNIDADES.map((u, i) => <option key={i} value={u}>{u}</option>)}
+                            </select>
+
+                            <select
+                                value={filterArea}
+                                onChange={(e) => setFilterArea(e.target.value)}
+                                className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium"
+                            >
+                                <option value="Todas">Área: Todas</option>
+                                {AREAS.map((a, i) => <option key={i} value={a}>{a}</option>)}
+                            </select>
+
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                                className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium"
+                            >
+                                <option value="Todos">Status: Todos</option>
+                                <option value="Novo">Novo</option>
+                                <option value="Em Produção">Em Produção</option>
+                                <option value="Aguardando Aprovação">Aguardando Aprovação</option>
+                                <option value="Concluído">Concluído</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Cartões do Painel */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {filtered.map(pedido => {
+                            const statusTheme = STATUS_THEMES[pedido.status] || STATUS_THEMES["Novo"];
+
+                            return (
+                                <div key={pedido.id} className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:border-magenta-200 transition flex flex-col justify-between space-y-4">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-mono font-medium text-slate-400">{pedido.id}</span>
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${statusTheme.bg}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${statusTheme.dot}`}></span>
+                                                {statusTheme.label}
+                                            </span>
+                                        </div>
+
+                                        <h3 className="text-sm font-semibold text-slate-900 leading-snug">
+                                            {pedido.titulo}
+                                        </h3>
+
+                                        <div className="flex flex-wrap gap-1.5 text-[11px]">
+                                            <span className="bg-magenta-50 text-magenta-800 font-medium px-2.5 py-0.5 rounded-md">
+                                                {pedido.unidade}
+                                            </span>
+                                            <span className="bg-slate-100 text-slate-600 font-medium px-2.5 py-0.5 rounded-md">
+                                                {pedido.area}
+                                            </span>
+                                            <span className="bg-slate-100 text-slate-600 font-medium px-2.5 py-0.5 rounded-md">
+                                                {pedido.tipoPeca}
+                                            </span>
+                                        </div>
+
+                                        <p className="text-xs text-slate-500">
+                                            Solicitante: <span className="font-semibold text-slate-800">{pedido.requerente}</span> ({pedido.email})
+                                        </p>
+                                    </div>
+
+                                    {/* Ações Rápidas */}
+                                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
+                                        <select
+                                            value={pedido.status}
+                                            onChange={(e) => onUpdate(pedido.id, { status: e.target.value })}
+                                            className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 font-medium text-[11px] focus:outline-none"
+                                        >
+                                            <option value="Novo">Novo</option>
+                                            <option value="Em Produção">Em Produção</option>
+                                            <option value="Aguardando Aprovação">Aguardando Aprovação</option>
+                                            <option value="Concluído">Concluído</option>
+                                        </select>
+
+                                        <button
+                                            onClick={() => onOpenDetails(pedido)}
+                                            className="text-magenta-700 hover:text-magenta-900 font-semibold text-xs flex items-center gap-1"
+                                        >
+                                            <span>Gerir Demanda</span>
+                                            <span>›</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {filtered.length === 0 && (
+                        <div className="text-center py-12 bg-white rounded-2xl border border-slate-200/80">
+                            <p className="text-xs text-slate-400">Nenhuma solicitação localizada.</p>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ==========================================
+        // 3. ECRÃ: OS MEUS PEDIDOS (ACOMPANHAMENTO)
+        // ==========================================
+        function EcraMeusPedidos({ pedidos, onOpenDetails }) {
+            const [filterEmail, setFilterEmail] = useState("");
+            const steps = ["Enviado", "Em Produção", "Análise", "Concluído"];
+
+            const getStepIndex = (status) => {
+                if (status === "Novo") return 0;
+                if (status === "Em Produção") return 1;
+                if (status === "Aguardando Aprovação") return 2;
+                if (status === "Concluído") return 3;
+                return 0;
+            };
+
+            const displayedPedidos = useMemo(() => {
+                if (!filterEmail.trim()) return pedidos;
+                return pedidos.filter(p => p.email.toLowerCase().includes(filterEmail.toLowerCase().trim()));
+            }, [pedidos, filterEmail]);
+
+            return (
+                <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
+                    <div className="text-center space-y-1">
+                        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Os Meus Pedidos</h2>
+                        <p className="text-xs text-slate-500">Acompanhe a evolução de atendimento das suas demandas.</p>
+                    </div>
+
+                    {/* Filtro por e-mail */}
+                    <div className="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm max-w-md mx-auto">
+                        <input
+                            type="email"
+                            placeholder="Pesquisar pelo e-mail do solicitante..."
+                            value={filterEmail}
+                            onChange={(e) => setFilterEmail(e.target.value)}
+                            className="w-full px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-magenta-600/20"
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        {displayedPedidos.map(pedido => {
+                            const stepIdx = getStepIndex(pedido.status);
+
+                            return (
+                                <div key={pedido.id} className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6">
+                                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-100 pb-4">
+                                        <div>
+                                            <span className="text-[10px] font-mono text-slate-400">{pedido.id} • {pedido.unidade}</span>
+                                            <h3 className="text-base font-semibold text-slate-900 mt-0.5">{pedido.titulo}</h3>
+                                            <p className="text-xs text-slate-500 mt-0.5">Solicitante: {pedido.requerente} ({pedido.email})</p>
+                                        </div>
+                                        <button
+                                            onClick={() => onOpenDetails(pedido)}
+                                            className="self-start sm:self-auto text-xs bg-magenta-50 hover:bg-magenta-100 text-magenta-800 font-semibold px-3.5 py-2 rounded-xl transition"
+                                        >
+                                            Ver Detalhes
+                                        </button>
+                                    </div>
+
+                                    {/* Linha de Tempo Visual de 4 Etapas */}
+                                    <div className="py-2">
+                                        <div className="relative flex items-center justify-between">
+                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-slate-100"></div>
+                                            <div
+                                                className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-magenta-700 transition-all duration-300"
+                                                style={{ width: `${(stepIdx / 3) * 100}%` }}
+                                            ></div>
+
+                                            {steps.map((label, idx) => {
+                                                const isDone = idx <= stepIdx;
+                                                return (
+                                                    <div key={idx} className="relative z-10 flex flex-col items-center">
+                                                        <div
+                                                            className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                                                                isDone
+                                                                    ? "bg-magenta-700 text-white shadow-md shadow-magenta-700/20"
+                                                                    : "bg-white border border-slate-300 text-slate-400"
+                                                            }`}
+                                                        >
+                                                            {isDone ? "✓" : idx + 1}
+                                                        </div>
+                                                        <span className={`text-[11px] font-medium mt-2 ${idx === stepIdx ? "text-magenta-900 font-bold" : "text-slate-400"}`}>
+                                                            {label}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Entregáveis Finais */}
+                                    {pedido.status === "Concluído" && (
+                                        <div className="bg-emerald-50/70 border border-emerald-200/70 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                                            <div>
+                                                <p className="font-bold text-emerald-900">Demanda Concluída e Entregue!</p>
+                                                <p className="text-emerald-700 text-[11px]">Os arquivos finais e artes estão disponíveis no botão ao lado.</p>
+                                            </div>
+
+                                            {pedido.linkEntrega ? (
+                                                <a
+                                                    href={pedido.linkEntrega}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl transition shadow-sm text-xs whitespace-nowrap"
+                                                >
+                                                    <span>Aceder aos Entregáveis</span>
+                                                    <span>↗</span>
+                                                </a>
+                                            ) : (
+                                                <span className="text-slate-500 text-[11px]">Aguardando inclusão do link pela equipe</span>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+
+                        {displayedPedidos.length === 0 && (
+                            <div className="text-center py-12 bg-white rounded-2xl border border-slate-200/80">
+                                <p className="text-xs text-slate-400">Nenhum pedido localizado.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // 4. ECRÃ: LOG DE EMAILS E DISPAROS
+        // ==========================================
+        function EcraLogEmails({ emailsLog, onSelectEmail }) {
+            const [copiedId, setCopiedId] = useState(null);
+
+            const copyText = (log) => {
+                const dummy = document.createElement("textarea");
+                document.body.appendChild(dummy);
+                dummy.value = log.plainTextBody;
+                dummy.select();
+                document.execCommand("copy");
+                document.body.removeChild(dummy);
+
+                setCopiedId(log.id);
+                setTimeout(() => setCopiedId(null), 2500);
+            };
+
+            return (
+                <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
+                    <div className="text-center space-y-1">
+                        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Log de E-mails e Disparos</h2>
+                        <p className="text-xs text-slate-500">
+                            Registo completo das notificações formatadas para <span className="font-semibold text-slate-800">{EMAIL_DESTINO_EQUIPA}</span>.
+                        </p>
+                    </div>
+
+                    <div className="space-y-3">
+                        {emailsLog.map((log) => (
+                            <div key={log.id} className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:border-magenta-200 transition flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        <span className="text-[10px] font-mono text-slate-400">{log.dataEnvio}</span>
+                                        <span className="bg-magenta-50 text-magenta-800 font-semibold text-[10px] px-2 py-0.5 rounded-full">Pronto</span>
+                                    </div>
+                                    <h3 className="text-sm font-semibold text-slate-900">{log.subject}</h3>
+                                    <p className="text-xs text-slate-500">
+                                        Solicitante: <span className="font-semibold text-slate-800">{log.solicitante}</span> ({log.emailSolicitante})
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                                    <a
+                                        href={log.mailtoUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="flex-1 md:flex-none text-center bg-magenta-700 hover:bg-magenta-800 text-white font-semibold text-xs px-3.5 py-2 rounded-xl transition shadow-sm"
+                                    >
+                                        📧 Disparar no Outlook
+                                    </a>
+
+                                    <button
+                                        onClick={() => copyText(log)}
+                                        className="flex-1 md:flex-none bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs px-3 py-2 rounded-xl transition border border-slate-200"
+                                    >
+                                        {copiedId === log.id ? "✓ Copiado" : "📋 Copiar Texto"}
+                                    </button>
+
+                                    <button
+                                        onClick={() => onSelectEmail(log)}
+                                        className="flex-1 md:flex-none bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs px-3 py-2 rounded-xl transition border border-slate-200"
+                                    >
+                                        Ver HTML
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // MODAL DE CONFIRMAÇÃO DE CRIAÇÃO + OPÇÕES DE DISPARO
+        // ==========================================
+        function ModalConfirmacaoCriacao({ emailPayload, onClose }) {
+            const [copied, setCopied] = useState(false);
+
+            const copyText = () => {
+                const dummy = document.createElement("textarea");
+                document.body.appendChild(dummy);
+                dummy.value = emailPayload.plainTextBody;
+                dummy.select();
+                document.execCommand("copy");
+                document.body.removeChild(dummy);
+
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2500);
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-fade-in space-y-5 p-6 border border-slate-100">
+                        <div className="text-center space-y-2">
+                            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 text-xl font-bold flex items-center justify-center mx-auto">
+                                ✓
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-900">Solicitação Criada com Sucesso!</h3>
+                            <p className="text-xs text-slate-500">
+                                A notificação para <strong className="text-slate-800">{EMAIL_DESTINO_EQUIPA}</strong> foi gerada.
+                            </p>
+                        </div>
+
+                        {/* Resumo do Conteúdo */}
+                        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-xs space-y-1.5 text-slate-700 font-mono">
+                            <div><strong className="text-magenta-800">Assunto:</strong> {emailPayload.subject}</div>
+                            <div><strong className="text-magenta-800">Solicitante:</strong> {emailPayload.solicitante}</div>
+                            <div><strong className="text-magenta-800">Departamento:</strong> {emailPayload.departamento}</div>
+                        </div>
+
+                        {/* Botões de Ação de Disparo */}
+                        <div className="space-y-2 pt-2">
+                            <a
+                                href={emailPayload.mailtoUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full flex items-center justify-center gap-2 bg-magenta-700 hover:bg-magenta-800 text-white font-semibold text-xs py-3.5 rounded-xl transition shadow-md shadow-magenta-700/20"
+                            >
+                                <span>📧 Abrir e Disparar no Outlook / E-mail App</span>
+                            </a>
+
+                            <button
+                                onClick={copyText}
+                                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs py-3 rounded-xl transition border border-slate-200 flex items-center justify-center gap-2"
+                            >
+                                <span>{copied ? "✓ Texto do E-mail Copiado!" : "📋 Copiar Texto Formatado do E-mail"}</span>
+                            </button>
+                        </div>
+
+                        <div className="pt-2 text-center">
+                            <button
+                                onClick={onClose}
+                                className="text-xs font-semibold text-slate-500 hover:text-slate-800 underline"
+                            >
+                                Ir para Meus Pedidos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // MODAL: DETALHES E ATRIBUIÇÃO
+        // ==========================================
+        function ModalDetalhes({ pedido, onClose, onUpdate }) {
+            const [link, setLink] = useState(pedido.linkEntrega || "");
+            const [responsavel, setResponsavel] = useState(pedido.responsavel || "Não atribuído");
+
+            const handleSave = () => {
+                onUpdate(pedido.id, { linkEntrega: link, responsavel });
+                onClose();
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-fade-in">
+                        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-magenta-50/50">
+                            <div>
+                                <span className="text-[10px] font-mono text-slate-400">{pedido.id}</span>
+                                <h3 className="text-base font-bold text-slate-900">{pedido.titulo}</h3>
+                            </div>
+                            <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 text-lg font-bold">
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
+                            <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div>
+                                    <span className="text-slate-400 font-medium uppercase tracking-wider text-[9px]">Solicitante</span>
+                                    <p className="font-semibold text-slate-800 mt-0.5">{pedido.requerente}</p>
+                                </div>
+                                <div>
+                                    <span className="text-slate-400 font-medium uppercase tracking-wider text-[9px]">E-mail</span>
+                                    <p className="font-semibold text-slate-800 mt-0.5">{pedido.email}</p>
+                                </div>
+                                <div>
+                                    <span className="text-slate-400 font-medium uppercase tracking-wider text-[9px]">Departamento</span>
+                                    <p className="font-semibold text-slate-800 mt-0.5">{pedido.unidade}</p>
+                                </div>
+                                <div>
+                                    <span className="text-slate-400 font-medium uppercase tracking-wider text-[9px]">Serviço</span>
+                                    <p className="font-semibold text-slate-800 mt-0.5">{pedido.tipoPeca}</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span className="font-semibold text-slate-900 block mb-1">Detalhes / Briefing</span>
+                                <p className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 leading-relaxed text-slate-600 whitespace-pre-line">
+                                    {pedido.briefing}
+                                </p>
+                            </div>
+
+                            <div>
+                                <span className="font-semibold text-slate-900 block mb-1">Anexos ({pedido.anexos.length})</span>
+                                {pedido.anexos.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {pedido.anexos.map((a, i) => (
+                                            <span key={i} className="bg-slate-100 px-3 py-1 rounded-lg text-slate-700 font-medium text-[11px]">
+                                                📄 {a}
+                                            </span>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-slate-400 italic text-[11px]">Nenhum anexo fornecido.</p>
+                                )}
+                            </div>
+
+                            <div className="pt-3 border-t border-slate-100 space-y-3">
+                                <div>
+                                    <label className="font-semibold text-slate-900 block mb-1">Atribuir Responsável da Equipe</label>
+                                    <select
+                                        value={responsavel}
+                                        onChange={(e) => setResponsavel(e.target.value)}
+                                        className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none"
+                                    >
+                                        {TEAM_MEMBERS.map((m, idx) => (
+                                            <option key={idx} value={m}>{m}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="font-semibold text-slate-900 block mb-1">Link da Pasta de Arquivos / Entregáveis</label>
+                                    <input
+                                        type="url"
+                                        placeholder="https://afya.unigranrio.edu.br/entregas/..."
+                                        value={link}
+                                        onChange={(e) => setLink(e.target.value)}
+                                        className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-2">
+                            <button onClick={onClose} className="bg-slate-200 text-slate-800 text-xs font-medium px-4 py-2 rounded-xl">
+                                Cancelar
+                            </button>
+                            <button onClick={handleSave} className="bg-magenta-700 text-white text-xs font-semibold px-5 py-2 rounded-xl">
+                                Salvar Alterações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // MODAL: PREVIEW E CÓDIGO HTML DO E-MAIL
+        // ==========================================
+        function ModalVisualizadorEmail({ email, onClose }) {
+            const [copied, setCopied] = useState(false);
+
+            const copyHtml = () => {
+                const dummy = document.createElement("textarea");
+                document.body.appendChild(dummy);
+                dummy.value = email.htmlContent;
+                dummy.select();
+                document.execCommand("copy");
+                document.body.removeChild(dummy);
+
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2500);
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in">
+                        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                            <span className="text-xs font-semibold text-slate-700">Preview do E-mail de Notificação</span>
+                            <div className="flex items-center gap-2">
+                                <a
+                                    href={email.mailtoUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="bg-magenta-700 hover:bg-magenta-800 text-white font-medium text-xs px-3.5 py-1.5 rounded-xl transition"
+                                >
+                                    Disparar no Outlook
+                                </a>
+                                <button
+                                    onClick={copyHtml}
+                                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs px-3 py-1.5 rounded-xl transition border border-slate-200"
+                                >
+                                    {copied ? "✓ HTML Copiado!" : "Copiar HTML"}
+                                </button>
+                                <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 text-base font-bold">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Renderização exata do e-mail */}
+                        <div className="p-6 overflow-y-auto bg-slate-100 flex justify-center">
+                            <div 
+                                className="w-full bg-white rounded-xl shadow-sm border border-slate-200/80 p-6"
+                                dangerouslySetInnerHTML={{ __html: email.htmlContent }}
+                            />
+                        </div>
+
+                        <div className="p-3 border-t border-slate-100 text-center text-[11px] text-slate-400 bg-white">
+                            Notificação para <span className="font-semibold text-slate-700">{email.to}</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // MODAL: CONFIGURAÇÃO DE WEBHOOK / POWER AUTOMATE
+        // ==========================================
+        function ModalConfigWebhook({ currentUrl, onSave, onClose }) {
+            const [url, setUrl] = useState(currentUrl);
+
+            return (
+                <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 animate-fade-in space-y-4">
+                        <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                            <h3 className="font-bold text-sm text-slate-900">Configurar Webhook / Power Automate</h3>
+                            <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
+                        </div>
+
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                            Caso sua instituição utilize o <strong>Power Automate (Office 365)</strong> ou uma API REST de e-mail, cole a URL do fluxo/endpoint HTTP abaixo. Quando preenchido, o site enviará uma requisição <code className="bg-slate-100 px-1 py-0.5 rounded text-magenta-800">POST</code> contendo o payload do chamado em segundo plano.
+                        </p>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                URL do Webhook / Trigger HTTP
+                            </label>
+                            <input
+                                type="url"
+                                placeholder="https://prod-xx.brazilsouth.logic.azure.com:443/workflows/..."
+                                value={url}
+                                onChange={(e) => setUrl(e.target.value)}
+                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-magenta-600/20"
+                            />
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-2">
+                            <button
+                                onClick={() => onSave("")}
+                                className="bg-slate-100 text-slate-600 text-xs font-medium px-4 py-2 rounded-xl"
+                            >
+                                Limpar
+                            </button>
+                            <button
+                                onClick={() => onSave(url.trim())}
+                                className="bg-magenta-700 text-white text-xs font-semibold px-5 py-2 rounded-xl"
+                            >
+                                Salvar Configuração
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+</body>
+</html>
