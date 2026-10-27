@@ -1,345 +1,217 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketing Hub — Afya Unigranrio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: #f8fafc; color: #0f172a; min-height: 100vh; display: flex; flex-direction: column; }
-        
-        /* HEADER */
-        header { background: #3b071e; color: #fff; padding: 15px 20px; border-bottom: 3px solid #be185d; }
-        .header-content { max-width: 1000px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .logo svg { height: 35px; cursor: pointer; }
-        .nav-tabs { display: flex; gap: 5px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 50px; }
-        .nav-tabs button { background: transparent; color: #fecdd3; border: none; padding: 8px 15px; border-radius: 50px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
-        .nav-tabs button.active { background: #fff; color: #3b071e; }
-        .badge { background: #be185d; color: #fff; padding: 2px 7px; border-radius: 20px; font-size: 11px; }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b12">
+<title>Baixar vídeo do TikTok</title>
+<style>
+:root{--bg:#0b0b12;--card:rgba(255,255,255,.07);--line:rgba(255,255,255,.14);--fg:#fff;--mut:#a9abc0;--pink:#fe2c55;--cyan:#25f4ee}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--fg);font-family:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;overflow-x:hidden;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 
-        /* MAIN CONTENT */
-        main { max-width: 900px; margin: 30px auto; padding: 0 20px; flex: 1; width: 100%; }
-        .title-block { text-align: center; margin-bottom: 25px; }
-        .title-block h1 { font-size: 24px; font-weight: 800; color: #0f172a; }
-        .title-block p { font-size: 14px; color: #64748b; margin-top: 5px; }
-        
-        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        
-        /* FORM */
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        @media (max-width: 650px) { .form-grid, .form-grid-3 { grid-template-columns: 1fr; } }
-        
-        .field { display: flex; flex-direction: column; gap: 5px; }
-        .field label { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; }
-        .field input, .field select, .field textarea { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
-        .field input:focus, .field select:focus, .field textarea:focus { border-color: #be185d; box-shadow: 0 0 0 2px rgba(190,24,93,0.2); }
-        
-        .btn-submit { width: 100%; background: #be185d; color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 15px; transition: 0.2s; }
-        .btn-submit:hover { background: #9d174d; }
-        
-        /* PANELS */
-        .hidden { display: none !important; }
-        .item-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
-        .item-header { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 10px; }
-        .item-title { font-weight: 700; font-size: 16px; color: #0f172a; }
-        .item-id { font-size: 11px; color: #94a3b8; font-family: monospace; }
-        .status-badge { background: #fce7f3; color: #9d174d; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-        .item-body p { font-size: 13px; color: #475569; margin-bottom: 5px; }
-        
-        /* FOOTER & MISC */
-        footer { background: #fff; border-top: 1px solid #e2e8f0; padding: 15px 20px; font-size: 12px; color: #64748b; margin-top: auto; }
-        .footer-content { max-width: 1000px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .toast { position: fixed; bottom: 20px; right: 20px; background: #0f172a; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13px; opacity: 0; transition: 0.3s; pointer-events: none; z-index:9999; }
-        .toast.show { opacity: 1; transform: translateY(-10px); }
-        .btn-outlook { background: #0ea5e9; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; margin-top: 10px; }
-        .btn-outlook:hover { background: #0284c7; }
-    </style>
+/* Fundo animado */
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden}
+.blob{position:absolute;width:55vmax;height:55vmax;border-radius:50%;filter:blur(90px);opacity:.45;animation:float 18s ease-in-out infinite}
+.b1{background:var(--pink);top:-20vmax;left:-15vmax}
+.b2{background:var(--cyan);bottom:-25vmax;right:-15vmax;animation-delay:-6s;animation-duration:22s}
+.b3{background:#7a3cff;top:30%;left:35%;width:35vmax;height:35vmax;opacity:.3;animation-delay:-11s}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(6vmax,4vmax) scale(1.1)}66%{transform:translate(-4vmax,7vmax) scale(.95)}}
+.note{position:absolute;bottom:-40px;font-size:24px;opacity:0;animation:rise linear infinite}
+@keyframes rise{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:.5}100%{transform:translateY(-110vh) rotate(40deg);opacity:0}}
+
+main{max-width:520px;margin:0 auto;padding:48px 20px 40px;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.logo{width:72px;height:72px;margin:0 auto 20px;border-radius:22px;display:grid;place-items:center;font-size:34px;
+  background:linear-gradient(135deg,var(--pink),#7a3cff);box-shadow:0 10px 40px rgba(254,44,85,.45);animation:pop .8s cubic-bezier(.2,1.4,.4,1) both,bob 4s ease-in-out .8s infinite}
+@keyframes pop{from{transform:scale(0) rotate(-30deg)}to{transform:scale(1) rotate(0)}}
+@keyframes bob{50%{transform:translateY(-8px)}}
+h1{text-align:center;font-size:clamp(28px,8vw,40px);line-height:1.1;margin:0 0 10px;letter-spacing:-.02em;animation:up .7s .15s both}
+h1 span{background:linear-gradient(90deg,var(--pink),var(--cyan),var(--pink));background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 4s linear infinite}
+@keyframes shine{to{background-position:200% center}}
+.sub{text-align:center;color:var(--mut);margin:0 0 28px;animation:up .7s .3s both}
+@keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:18px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);animation:up .7s .45s both}
+.field{display:flex;gap:8px;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:16px;padding:6px;transition:border-color .25s,box-shadow .25s}
+.field:focus-within{border-color:var(--cyan);box-shadow:0 0 0 4px rgba(37,244,238,.15)}
+.field input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--fg);font-size:16px;padding:10px}
+.field input::placeholder{color:#7f8199}
+.paste{border:0;background:rgba(255,255,255,.1);color:var(--fg);border-radius:12px;padding:0 14px;font-weight:600;font-size:14px;cursor:pointer}
+.go{position:relative;overflow:hidden;width:100%;margin-top:12px;border:0;border-radius:16px;padding:16px;font-size:17px;font-weight:700;color:#fff;cursor:pointer;
+  background:linear-gradient(90deg,var(--pink),#ff6a3d);box-shadow:0 8px 28px rgba(254,44,85,.4);transition:transform .15s}
+.go:active{transform:scale(.97)}
+.go::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-100%);animation:sweep 3s infinite}
+@keyframes sweep{to{transform:translateX(100%)}}
+.go:disabled{opacity:.7;cursor:wait}
+.bar{height:4px;border-radius:4px;background:rgba(255,255,255,.12);margin-top:14px;overflow:hidden;display:none}
+.bar i{display:block;height:100%;width:40%;background:linear-gradient(90deg,var(--pink),var(--cyan));border-radius:4px;animation:slide 1.1s ease-in-out infinite}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+.loading .bar{display:block}
+.status{min-height:22px;margin-top:12px;text-align:center;font-size:14px;color:var(--mut)}
+.status.err{color:#ff7a90}.status.ok{color:var(--cyan)}
+
+.result{display:none;margin-top:16px;text-align:center}
+.result.show{display:block;animation:up .5s both}
+.result video{width:100%;max-height:360px;border-radius:16px;background:#000}
+.check{width:56px;height:56px;margin:0 auto 10px}
+.check circle{stroke:var(--cyan);stroke-width:3;fill:none;stroke-dasharray:166;stroke-dashoffset:166;animation:draw .6s forwards}
+.check path{stroke:var(--cyan);stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:48;stroke-dashoffset:48;animation:draw .4s .5s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.row{display:flex;gap:8px;margin-top:12px}
+.row button{flex:1;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--fg);border-radius:14px;padding:13px;font-weight:600;font-size:15px;cursor:pointer}
+
+.steps{display:flex;justify-content:space-between;gap:10px;margin:26px 0 0;animation:up .7s .6s both}
+.steps div{flex:1;text-align:center;font-size:13px;color:var(--mut)}
+.steps b{display:block;font-size:22px;margin-bottom:4px}
+
+/* Botão do atalho do iPhone */
+.shortcut{margin-top:22px;padding:18px;border-radius:20px;text-align:center;background:var(--card);border:1px solid var(--line);animation:up .7s .75s both}
+.shortcut h2{margin:0 0 4px;font-size:17px}
+.shortcut p{margin:0 0 14px;color:var(--mut);font-size:14px}
+.sc-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:16px;text-decoration:none;font-weight:700;font-size:16px;color:#fff;
+  background:linear-gradient(90deg,#7a3cff,#25a4ff);box-shadow:0 8px 28px rgba(122,60,255,.4);transition:transform .15s}
+.sc-btn:active{transform:scale(.97)}
+.sc-how{margin:12px 0 0;font-size:13px;color:var(--mut)}
+
+footer{text-align:center;color:#7f8199;font-size:12px;margin-top:28px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important}}
+</style>
 </head>
 <body>
+<div class="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div id="notes"></div></div>
 
-    <header>
-        <div class="header-content">
-            <div class="logo" onclick="mudarAba('novo')">
-                <svg viewBox="0 0 420 80" fill="currentColor">
-                    <path d="M 22.5 55 L 42.5 15 L 62.5 55 L 50 55 L 42.5 37.5 L 35 55 Z M 42.5 5 L 77.5 75 L 57.5 75 L 42.5 45 L 27.5 75 L 7.5 75 Z" fill="#ffffff"/>
-                    <text x="85" y="58" font-family="'Inter', sans-serif" font-size="52" font-weight="700" fill="#ffffff" letter-spacing="-1">Afya</text>
-                    <text x="210" y="32" font-family="'Inter', sans-serif" font-size="19" font-weight="800" fill="#ffffff" letter-spacing="0.5">UNIVERSIDADE</text>
-                    <text x="208" y="60" font-family="'Inter', sans-serif" font-size="33" font-weight="900" fill="#ffffff" letter-spacing="-0.5">UNIGRANRIO</text>
-                </svg>
-            </div>
-            <div class="nav-tabs">
-                <button id="btn-novo" class="active" onclick="mudarAba('novo')">Novo Pedido</button>
-                <button id="btn-painel" onclick="mudarAba('painel')">Painel <span id="cnt-painel" class="badge">0</span></button>
-                <button id="btn-meus" onclick="mudarAba('meus')">Meus Pedidos <span id="cnt-meus" class="badge">0</span></button>
-                <button id="btn-emails" onclick="mudarAba('emails')">Emails Enviados <span id="cnt-emails" class="badge">0</span></button>
-            </div>
-        </div>
-    </header>
+<main id="app">
+  <div class="logo">⬇</div>
+  <h1>Baixe vídeos do <span>TikTok</span></h1>
+  <p class="sub">Cole o link e o download começa sozinho.</p>
 
-    <main>
-        <section id="aba-novo">
-            <div class="title-block">
-                <h1>Novo Pedido de Marketing</h1>
-                <p>Abra um chamado diretamente com a equipa de atendimento.</p>
-            </div>
-            <div class="card">
-                <form id="formPedido" onsubmit="enviarPedido(event)">
-                    <div class="form-grid" style="background:#fff1f2; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #fecdd3;">
-                        <div class="field">
-                            <label style="color:#9f1239;">Nome do Solicitante *</label>
-                            <input type="text" id="reqNome" required placeholder="Ex.: João Silva">
-                        </div>
-                        <div class="field">
-                            <label style="color:#9f1239;">E-mail do Solicitante *</label>
-                            <input type="email" id="reqEmail" required placeholder="exemplo@afya.com.br">
-                        </div>
-                    </div>
+  <section class="card">
+    <div class="field">
+      <input id="url" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://vm.tiktok.com/...">
+      <button class="paste" id="pasteBtn" type="button">Colar</button>
+    </div>
+    <button class="go" id="go" type="button">Colar e baixar</button>
+    <div class="bar"><i></i></div>
+    <div class="status" id="status"></div>
 
-                    <div class="form-grid">
-                        <div class="field">
-                            <label>Título da Demanda *</label>
-                            <input type="text" id="titulo" required placeholder="Ex.: Campanha site">
-                        </div>
-                        <div class="field">
-                            <label>Unidade / Setor *</label>
-                            <select id="unidade" required>
-                                <option value="Duque de Caxias">Duque de Caxias</option>
-                                <option value="Barra da Tijuca">Barra da Tijuca</option>
-                                <option value="Nova Iguaçu">Nova Iguaçu</option>
-                                <option value="Propep">Propep</option>
-                                <option value="Reitoria">Reitoria</option>
-                            </select>
-                        </div>
-                    </div>
+    <div class="result" id="result">
+      <svg class="check" viewBox="0 0 56 56"><circle cx="28" cy="28" r="26"/><path d="M16 29l8 8 16-17"/></svg>
+      <video id="preview" controls playsinline muted></video>
+      <div class="row">
+        <button id="again" type="button">⬇ Baixar de novo</button>
+        <button id="share" type="button">📲 Salvar na galeria</button>
+      </div>
+    </div>
+  </section>
 
-                    <div class="form-grid-3">
-                        <div class="field">
-                            <label>Área *</label>
-                            <select id="area" required>
-                                <option value="Design">Design</option>
-                                <option value="Redes Sociais">Redes Sociais</option>
-                                <option value="Disparos">Disparos</option>
-                            </select>
-                        </div>
-                        <div class="field">
-                            <label>Tipo de Serviço *</label>
-                            <select id="tipoPeca" required>
-                                <option value="Alteração no site">Alteração no site</option>
-                                <option value="Banner">Banner</option>
-                                <option value="Story">Story</option>
-                                <option value="Outros">Outros</option>
-                            </select>
-                        </div>
-                        <div class="field">
-                            <label>Prazo (Mín 3 dias) *</label>
-                            <input type="date" id="prazo" required>
-                        </div>
-                    </div>
+  <div class="steps">
+    <div><b>📋</b>Copie o link</div>
+    <div><b>👆</b>Toque em baixar</div>
+    <div><b>✅</b>Vídeo salvo</div>
+  </div>
 
-                    <div class="field">
-                        <label>Briefing / Detalhes *</label>
-                        <textarea id="briefing" rows="4" required placeholder="Escreva aqui todas as instruções..."></textarea>
-                    </div>
+  <section class="shortcut" id="shortcutBox">
+    <h2>📲 Atalho para iPhone</h2>
+    <p>Baixe direto pelo botão Compartilhar do app do TikTok, sem abrir o site.</p>
+    <a class="sc-btn" id="scBtn" href="#">Adicionar o atalho</a>
+    <div class="sc-how">Depois, no TikTok: <b>Compartilhar → Baixar TikTok</b></div>
+  </section>
 
-                    <button type="submit" class="btn-submit" id="btnSubmit">Submeter Pedido</button>
-                </form>
-            </div>
-        </section>
+  <footer>Use apenas para fins pessoais e respeite os direitos dos criadores. Site independente, sem ligação com o TikTok.</footer>
+</main>
 
-        <section id="aba-painel" class="hidden">
-            <div class="title-block"><h1>Painel de Gestão</h1></div>
-            <div id="lista-painel"></div>
-        </section>
+<script>
+// >>> TROQUE pela URL do seu Worker depois do deploy
+const API_URL = "https://SEU-WORKER.SEU-USUARIO.workers.dev";
+// >>> Cole aqui o link do iCloud do seu atalho (Atalhos → segurar → Compartilhar → Copiar link do iCloud)
+const SHORTCUT_URL = "https://www.icloud.com/shortcuts/COLE-AQUI";
 
-        <section id="aba-meus" class="hidden">
-            <div class="title-block"><h1>Os Meus Pedidos</h1></div>
-            <div id="lista-meus"></div>
-        </section>
+const $ = id => document.getElementById(id);
+const input = $("url"), go = $("go"), statusEl = $("status"), result = $("result"), preview = $("preview");
+const TIKTOK = /^https?:\/\/([a-z0-9-]+\.)*tiktok\.com\//i;
+let blob = null, busy = false;
 
-        <section id="aba-emails" class="hidden">
-            <div class="title-block"><h1>Log de E-mails Disparados</h1></div>
-            <div id="lista-emails"></div>
-        </section>
-    </main>
+// Botão do atalho (fica escondido até você colocar o link)
+if (SHORTCUT_URL.includes("COLE-AQUI")) {
+  $("shortcutBox").style.display = "none";
+} else {
+  $("scBtn").href = SHORTCUT_URL;
+}
 
-    <footer>
-        <div class="footer-content">
-            <span>🚀 GitHub Pages CORS Bypass Ativo</span>
-        </div>
-    </footer>
+// Notas musicais flutuando no fundo
+for (let i = 0; i < 12; i++) {
+  const n = document.createElement("span");
+  n.className = "note"; n.textContent = ["♪","♫","♬"][i % 3];
+  n.style.left = Math.random() * 100 + "%";
+  n.style.animationDuration = 9 + Math.random() * 10 + "s";
+  n.style.animationDelay = -Math.random() * 15 + "s";
+  $("notes").appendChild(n);
+}
 
-    <div id="toast" class="toast">Ação concluída com sucesso!</div>
+function say(msg, cls = "") { statusEl.textContent = msg; statusEl.className = "status " + cls; }
 
-    <script>
-        const WEBHOOK_URL = "https://default60bcece8eb6b494ea607e83fcdcef3.33.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/13/workflows/4fadb152b5aa4b8dba53b47b7a2b5902/triggers/manual/paths/invoke?api-version=1";
-        
-        // Proxy para contornar o bloqueio CORS do GitHub Pages
-        const PROXY_URL = "https://corsproxy.io/?"; 
-        const URL_FINAL = PROXY_URL + encodeURIComponent(WEBHOOK_URL);
+async function readClipboard() {
+  try { return (await navigator.clipboard.readText()).trim(); } catch { return ""; }
+}
 
-        const DESTINATARIO = "atendimentomarketing.unigranrio@afya.com.br";
+async function start(url) {
+  if (busy) return;
+  if (!TIKTOK.test(url)) return say("Cole um link válido do TikTok.", "err");
+  busy = true; go.disabled = true; result.classList.remove("show");
+  document.querySelector(".card").classList.add("loading");
+  say("Buscando o vídeo...");
+  try {
+    const res = await fetch(`${API_URL}/?url=${encodeURIComponent(url)}`);
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      throw new Error(j.error || "Não foi possível baixar este vídeo.");
+    }
+    blob = await res.blob();
+    preview.src = URL.createObjectURL(blob);
+    result.classList.add("show");
+    say("Pronto! O download começou.", "ok");
+    save();                       // download automático
+  } catch (e) {
+    say(e.message || "Erro inesperado.", "err");
+  } finally {
+    busy = false; go.disabled = false;
+    document.querySelector(".card").classList.remove("loading");
+  }
+}
 
-        let bd_pedidos = JSON.parse(localStorage.getItem("afya_reqs_v5") || "[]");
-        
-        function initDatas() {
-            let data = new Date();
-            let diasUteis = 0;
-            while (diasUteis < 3) {
-                data.setDate(data.getDate() + 1);
-                if (data.getDay() !== 0 && data.getDay() !== 6) diasUteis++;
-            }
-            const minDate = data.toISOString().split('T')[0];
-            document.getElementById('prazo').min = minDate;
-            document.getElementById('prazo').value = minDate;
-        }
+function save() {
+  if (!blob) return;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "tiktok-" + Date.now() + ".mp4";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 15000);
+}
 
-        function guardarDados() {
-            localStorage.setItem("afya_reqs_v5", JSON.stringify(bd_pedidos));
-            document.getElementById("cnt-painel").innerText = bd_pedidos.length;
-            document.getElementById("cnt-meus").innerText = bd_pedidos.length;
-            document.getElementById("cnt-emails").innerText = bd_pedidos.length;
-        }
+async function shareToGallery() {
+  if (!blob) return;
+  const file = new File([blob], "tiktok.mp4", { type: "video/mp4" });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); } catch {}
+  } else { save(); }
+}
 
-        function mostrarAviso(msg) {
-            const toast = document.getElementById("toast");
-            toast.innerText = msg;
-            toast.classList.add("show");
-            setTimeout(() => toast.classList.remove("show"), 4000);
-        }
-
-        function mudarAba(abaDestino) {
-            ['novo', 'painel', 'meus', 'emails'].forEach(aba => {
-                document.getElementById(`aba-${aba}`).classList.add('hidden');
-                document.getElementById(`btn-${aba}`).classList.remove('active');
-            });
-            document.getElementById(`aba-${abaDestino}`).classList.remove('hidden');
-            document.getElementById(`btn-${abaDestino}`).classList.add('active');
-
-            if(abaDestino === 'painel') desenharPainel();
-            if(abaDestino === 'meus') desenharMeus();
-            if(abaDestino === 'emails') desenharEmails();
-        }
-
-        function enviarPorOutlook(idPedido) {
-            const p = bd_pedidos.find(x => x.id === idPedido);
-            if (!p) return;
-            const assunto = encodeURIComponent(`CHAMADO CRIADO COM SUCESSO: ${p.titulo}`);
-            const corpo = encodeURIComponent(`CHAMADO CRIADO COM SUCESSO\nInformações sobre o chamado:\n\nTipo de Serviço: ${p.tipoPeca} (${p.area})\nSolicitante: ${p.requerente} (${p.email})\nDepartamento/Setor: ${p.unidade}\nData de Abertura: ${p.dataAbertura}\nPrazo Desejado: ${p.prazo}\n\nAssunto / Título da Demanda:\n${p.titulo}\n\nDetalhes / Briefing:\n${p.briefing}`);
-            window.location.href = `mailto:${DESTINATARIO}?subject=${assunto}&body=${corpo}`;
-        }
-
-        async function enviarPedido(e) {
-            e.preventDefault();
-            const btn = document.getElementById("btnSubmit");
-            btn.innerText = "A Processar...";
-            btn.disabled = true;
-
-            const novoId = "REQ-" + Math.floor(1000 + Math.random() * 9000);
-            const dataAtual = new Date().toLocaleString("pt-BR");
-
-            const pedido = {
-                id: novoId,
-                dataAbertura: dataAtual,
-                status: "Novo",
-                titulo: document.getElementById("titulo").value,
-                unidade: document.getElementById("unidade").value,
-                area: document.getElementById("area").value,
-                tipoPeca: document.getElementById("tipoPeca").value,
-                prazo: document.getElementById("prazo").value,
-                briefing: document.getElementById("briefing").value,
-                requerente: document.getElementById("reqNome").value,
-                email: document.getElementById("reqEmail").value
-            };
-
-            bd_pedidos.unshift(pedido);
-            guardarDados();
-
-            let falhou = false;
-
-            // Envio via CORS Proxy para o Power Automate
-            try {
-                const response = await fetch(URL_FINAL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(pedido)
-                });
-                if (!response.ok) falhou = true;
-            } catch (err) {
-                falhou = true;
-            }
-
-            if (falhou) {
-                mostrarAviso("CORS Proxy falhou. A abrir o Outlook como alternativa...");
-                setTimeout(() => enviarPorOutlook(pedido.id), 1500);
-            } else {
-                mostrarAviso("Sucesso! Chamado entregue no Power Automate.");
-            }
-
-            document.getElementById("formPedido").reset();
-            initDatas();
-            btn.innerText = "Submeter Pedido";
-            btn.disabled = false;
-            mudarAba('emails');
-        }
-
-        function desenharPainel() {
-            const caixa = document.getElementById("lista-painel");
-            caixa.innerHTML = bd_pedidos.length ? bd_pedidos.map(p => `
-                <div class="item-card">
-                    <div class="item-header">
-                        <div>
-                            <div class="item-id">${p.id} • ${p.dataAbertura}</div>
-                            <div class="item-title">${p.titulo}</div>
-                        </div>
-                        <div class="status-badge">${p.status}</div>
-                    </div>
-                    <div class="item-body">
-                        <p><b>Solicitante:</b> ${p.requerente} (${p.email})</p>
-                        <p><b>Setor:</b> ${p.unidade} | <b>Área:</b> ${p.area}</p>
-                    </div>
-                </div>
-            `).join('') : '<p style="text-align:center; color:#94a3b8;">Nenhum chamado.</p>';
-        }
-
-        function desenharMeus() {
-            const caixa = document.getElementById("lista-meus");
-            caixa.innerHTML = bd_pedidos.length ? bd_pedidos.map(p => `
-                <div class="item-card">
-                    <div class="item-header">
-                        <div>
-                            <div class="item-id">${p.id} • ${p.unidade}</div>
-                            <div class="item-title">${p.titulo}</div>
-                        </div>
-                        <div class="status-badge">${p.status}</div>
-                    </div>
-                    <div class="item-body">
-                        <p><b>Prazo:</b> ${p.prazo}</p>
-                    </div>
-                </div>
-            `).join('') : '<p style="text-align:center; color:#94a3b8;">Sem pedidos efetuados.</p>';
-        }
-
-        function desenharEmails() {
-            const caixa = document.getElementById("lista-emails");
-            caixa.innerHTML = bd_pedidos.length ? bd_pedidos.map(p => `
-                <div class="item-card">
-                    <div class="item-header" style="border:none; padding:0; margin:0;">
-                        <div class="item-title" style="font-size:14px;">CHAMADO CRIADO COM SUCESSO: ${p.titulo}</div>
-                        <div class="item-id">${p.dataAbertura}</div>
-                    </div>
-                    <button class="btn-outlook" onclick="enviarPorOutlook('${p.id}')">
-                        📧 Reenviar pelo Outlook
-                    </button>
-                </div>
-            `).join('') : '<p style="text-align:center; color:#94a3b8;">Sem e-mails disparados.</p>';
-        }
-
-        window.onload = function() {
-            initDatas();
-            guardarDados();
-        };
-    </script>
+// Um toque: cola o link da área de transferência e baixa
+go.addEventListener("click", async () => {
+  let url = input.value.trim();
+  if (!url) { url = await readClipboard(); input.value = url; }
+  start(url);
+});
+$("pasteBtn").addEventListener("click", async () => {
+  const t = await readClipboard(); if (t) { input.value = t; start(t); }
+});
+// Colou manualmente? Baixa na hora
+input.addEventListener("paste", () => setTimeout(() => start(input.value.trim()), 50));
+input.addEventListener("keydown", e => { if (e.key === "Enter") start(input.value.trim()); });
+$("again").addEventListener("click", save);
+$("share").addEventListener("click", shareToGallery);
+</script>
 </body>
 </html>
